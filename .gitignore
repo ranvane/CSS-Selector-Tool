@@ -1,0 +1,9 @@
+# 智能体运行期状态（会话续跑记录等），与代码无关
+.omo/
+
+# codegraph 索引软链，指向 ~/.omo/codegraph，属于本机缓存
+.codegraph
+
+# 依赖与构建产物（本项目为纯原生 JS，暂无依赖，保留规则以防将来引入）
+node_modules/
+*.log

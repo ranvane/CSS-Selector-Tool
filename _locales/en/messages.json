@@ -1,0 +1,18 @@
+{
+   "extDesc": {
+      "description": "Extension description, shown on the extensions page",
+      "message": "Find, analyze and get CSS selectors in Chrome DevTools."
+   },
+   "extName": {
+      "description": "Extension name",
+      "message": "CSS Selector Finder - CSS Selector Assistant"
+   },
+   "menuItem": {
+      "description": "Context menu item title",
+      "message": "Get Selector"
+   },
+   "noPanel": {
+      "description": "Notification shown when the DevTools panel is not open",
+      "message": "Please open DevTools first (press F12)"
+   }
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>CSS Selector Finder</title>
+	<style>
+	body{ font-family: Verdana,Geneva,Arial,Helvetica,sans-serif; padding: 2px 15px; height: 100%; }
+	ul, ol{ list-style: none outside none; font-size: 14px; margin: 10px 0; padding: 5px 0;}
+	a{ text-decoration: none; color: #0c5ea3;}
+	
+	.clearfix:before, .clearfix:after { content: ""; display: table; }
+	.clearfix:after { clear: both }
+	.clearfix { zoom: 1 }
+
+	#selector-box, #results-box {
+		width:50%;
+		height:100%;
+		float:left;
+	}
+	
+	#selector-box textarea, #results-box textarea{
+		width:95%;
+		height:100%;
+	}
+	#toggle-btn {
+		padding: 1px 6px;
+		font-size: 12px;
+		cursor: pointer;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		background: #f5f5f5;
+		margin-left: 4px;
+	}
+	#toggle-btn:hover { background: #e8e8e8; }
+	</style>
+	<script src="../../panel.js"></script>
+</head>
+<body>
+	<div id="content" class="clearfix">
+		<div id="selector-box">
+			<div class="box-name">Selector:(<a href="#" id="enablecon">Enable ContextMenu</a>) <button id="toggle-btn" title="Shorten the selector in the box into a smart CSS Selector">Smart</button></div>
+			<textarea id="selector" placeholder='You can enter a CSS selector here or right click on target and choose "Get Selector"'></textarea>
+		</div>
+		<div id="results-box">
+			<div class="box-name">Results (<span id="node-count"></span>):</div>
+			<textarea id="results" readonly="readonly"></textarea>
+		</div>
+	</div>
+</body>
+</html>

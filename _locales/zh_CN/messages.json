@@ -1,0 +1,18 @@
+{
+   "extDesc": {
+      "description": "扩展描述，显示在扩展管理页与商店页",
+      "message": "帮助你在 Chrome DevTools 里查找、分析、获取 CSS 选择器。"
+   },
+   "extName": {
+      "description": "扩展名称与右键菜单项前缀",
+      "message": "CSS Selector Finder —— CSS 选择器助手"
+   },
+   "menuItem": {
+      "description": "右键菜单项标题",
+      "message": "Get Selector"
+   },
+   "noPanel": {
+      "description": "未打开 DevTools 面板时的通知文案",
+      "message": "请先打开开发者工具(按F12)"
+   }
+}

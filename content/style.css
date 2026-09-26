@@ -1,0 +1,7 @@
+.chromecssSelectorFinder {
+	outline: 2px dashed #FF0000 !important;
+}
+
+img.chromecssSelectorFinder {
+  opacity: 0.5 !important;
+}
