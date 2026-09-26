@@ -36,7 +36,7 @@ Chrome 开发者工具扩展。在 DevTools 面板里**提取、编辑、分析 
 
 | 区域 | 作用 |
 |---|---|
-| **路径框** | 显示 CSS 选择器，**可以直接编辑**，改完停顿 0.2 秒自动出结果 |
+| **路径框** | 显示 CSS 选择器，**可以直接编辑**，改完停顿 0.2 秒自动出结果；支持 `Ctrl+Z` 撤销、`Ctrl+Shift+Z` / `Ctrl+Y` 重做 |
 | **模式按钮** | 把路径框里**当前的**选择器在「智能缩写」和「完整路径」之间现算切换 |
 | **结果框** | 只读，实时显示路径框选择器的求值结果 |
 | **结果 (N)** | 本次选择器命中的**节点数量** |
@@ -65,6 +65,22 @@ Chrome 开发者工具扩展。在 DevTools 面板里**提取、编辑、分析 
 
 > **注意**：CSS 选择器只能选中**元素**。XPath 支持的 `count(//div)`、`string(//h1)` 这类标量求值在这里用不了，
 > 结果框固定显示命中元素的文本，每行一个。
+
+### 2.1 撤销 / 重做
+
+路径框内可直接用：
+
+| 快捷键 | 作用 |
+|---|---|
+| `Ctrl+Z` | 撤销一步 |
+| `Ctrl+Shift+Z` 或 `Ctrl+Y` | 重做一步 |
+
+- 连续敲击算**一个**撤销单位，不会让你为敲 20 个字符按 20 次
+- **能跨越面板自己的覆盖动作**：右键取了新元素、或点了「智能 / 原始」之后，
+  `Ctrl+Z` 依然能一步步退回覆盖前你手敲的内容
+  （浏览器的原生撤销在这一点上帮不上忙——面板写回路径框时会清空 textarea 的原生撤销栈，
+  那样按 `Ctrl+Z` 会完全没反应）
+- 撤销后如果又敲了新内容，重做记录会被丢弃，不会跳到已被覆盖的未来状态
 
 ### 3. 智能 / 原始 切换
 
@@ -109,7 +125,8 @@ Css-Selector-Tool/
 │   └── en/messages.json
 ├── icons/                 16 / 48 / 128 图标
 ├── tests/
-│   └── highlight-verify.mjs  真实 DOM 回归验证（Node + linkedom，无需浏览器）
+│   ├── highlight-verify.mjs   页面高亮污染回归验证（Node + linkedom，无需浏览器）
+│   └── panel-undo-verify.mjs  路径框撤销 / 重做回归验证（同上）
 ├── AGENTS.md              维护者手册（改代码看这里）
 └── README.md              本文件
 ```
@@ -117,8 +134,10 @@ Css-Selector-Tool/
 ### 跑验证
 
 ```bash
-node --check content/content.js      # 语法自检
-node tests/highlight-verify.mjs      # 93 项断言，覆盖高亮污染 / 唯一性 / 清高亮
+node --check content/content.js         # 语法自检
+node --check panel.js                   # 面板侧语法自检
+node tests/highlight-verify.mjs         # 93 项断言，覆盖高亮污染 / 唯一性 / 清高亮
+node tests/panel-undo-verify.mjs        # 20 项断言，覆盖撤销 / 重做 / 栈边界
 ```
 
 ---
@@ -143,3 +162,4 @@ node tests/highlight-verify.mjs      # 93 项断言，覆盖高亮污染 / 唯�
 | 2026-09-26 | 项目创建。基于 `360-XPath-Tool` 同构移植，界面与交互完全一致，仅把表达式类型从 XPath 换成 CSS 选择器。相对 XPath 版额外做了三处改进：id/class 走 `CSS.escape` 转义、页面高亮改用 `classList.add/remove`（兼容 SVG 元素）、扩展名与右键菜单项接入 `_locales` 国际化 |
 | 2026-09-26 | **修复高亮污染 bug**。此前生成的 CSS 选择器会把自己加的高亮 class `.chromecssSelectorFinder` 写进去，点一次「智能 / 原始」或清掉高亮后选择器就彻底失效。现在 `sh.getClassList()` 会剔除高亮 class，再配合「清高亮后表达式仍命中」的回归断言锁死该行为。同批修掉 `:nth-child` 在首个子元素时漏输出、智能缩写降级不校验唯一性两个缺陷 |
 | 2026-09-26 | 新增 `tests/highlight-verify.mjs`（Node + linkedom 真实 DOM，93 项断言），覆盖高亮污染、表达式唯一性、清高亮幂等性；`.omo/`、`.codegraph` 加入 `.gitignore`；初始化 Git 仓库并关联 `ranvane/CSS-Selector-Tool` |
+| 2026-09-26 | **路径框支持撤销 / 重做**（`Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+Y`）。此前 `Ctrl+Z` 形同失灵：面板右键取元素、点「智能 / 原始」时都会写回路径框，而程序化赋值会清空 textarea 的原生撤销栈，且该栈无法从 JS 恢复。现在面板自管一份历史栈，把用户编辑与程序化覆盖一并记入，连续敲击合并为一个撤销单位。新增 `tests/panel-undo-verify.mjs`（20 项断言） |

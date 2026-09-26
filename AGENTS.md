@@ -105,7 +105,7 @@ Chrome 开发者工具扩展（Manifest V3），在 DevTools 面板里提取、�
 
 | 文件 | 职责 | 改什么动它 |
 |---|---|---|
-| `panel.js` | 面板 UI：路径框输入、模式按钮、结果框渲染 | 交互、防抖、按钮文字、面板布局 |
+| `panel.js` | 面板 UI：路径框输入、模式按钮、结果框渲染、路径框撤销栈 | 交互、防抖、撤销/重做、按钮文字、面板布局 |
 | `content/content.js` | 页面侧：选择器生成、求值、高亮、回传 | 选择器生成算法、缩写策略、高亮样式 |
 | `background.js` | 右键菜单、消息路由、端口表 | 新增命令的路由、菜单项 |
 | `devtools.js` | 面板创建、端口连接与断线重连 | 面板注册、生命周期 |
@@ -165,6 +165,12 @@ Chrome 开发者工具扩展（Manifest V3），在 DevTools 面板里提取、�
    丢了就靠 `devtools.js` 的 `scheduleReconnect()` + 重新 `init` 自愈，不要引入持久化。
 6. **高亮 class 名改一处要改两处**。`content/content.js` 里的 `HIGHLIGHT_CLASS`
    与 `content/style.css` 里的 `.chromecssSelectorFinder` 必须一致。
+7. **`panel.js` 的 `historyStack` 不能删**。浏览器的原生撤销栈帮不上忙：
+   右键获取与模式按钮都会 `selectorEl.value = ...`，而程序化赋值会把 textarea 的
+   原生撤销栈整个清空，且 JS 侧没有任何 API 能把它重建（实测 `Ctrl+Z` 与
+   `document.execCommand('undo')` 均为空操作）。所以只能自管历史栈。
+   同理，`applyHistory()` 里 `recordHistory()` **必须在越界检查之前**调用 ——
+   否则「刚敲完 0.2 秒内就按 Ctrl+Z」会因为那笔输入还没进栈而越界落空。
 
 ---
 
@@ -186,3 +192,4 @@ Chrome 开发者工具扩展（Manifest V3），在 DevTools 面板里提取、�
 | 2026-09-26 | 项目创建。基于 `360-XPath-Tool` 同构移植：新增 `sh.makeSelectorForElement` / `sh.makeSmartSelectorForElement` / `sh.getChildIndex`；求值改用 `querySelectorAll`，输出固定为命中元素文本拼接（无标量求值）；id/class 走 `CSS.escape` 转义；高亮 class 改用 `classList.add/remove` 以兼容 SVG。相对 XPath 版的改进：扩展名与右键菜单项改用 `_locales` 国际化（XPath 版是硬编码中文） |
 | 2026-09-26 | 用 linkedom 真实 DOM 跑了 37 项验证（round-trip 为主），修掉 3 个缺陷：① 生成选择器会带上自己的高亮 class `.chromecssSelectorFinder`（**XPath 版同 bug**）；② `:nth-child` 在"第一个子元素"时漏输出，导致 `ul > li` 命中全部 `li`；③ 智能缩写第 4 步不校验唯一性，会返回多命中选择器。另把 `getClassList` 从 `classList` 索引改为 `getAttribute('class')`，`clearHighlights` 从依赖 live NodeList 改为快照遍历 |
 | 2026-09-26 | 验证套件扩到 93 项断言（`tests/highlight-verify.mjs`，Node + linkedom，无需浏览器），全部通过。新增「清高亮后表达式仍然命中」这一关键回归点，锁死高亮污染 bug 不再复发。初始化 Git 仓库（`main` 分支）并关联 `ranvane/CSS-Selector-Tool`；`.omo/`、`.codegraph` 写入 `.gitignore` |
+| 2026-09-26 | **路径框新增撤销 / 重做**（`Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+Y`）。根因：右键获取与模式按钮都会写 `selectorEl.value`，程序化赋值会清空 textarea 原生撤销栈（实测原生 `Ctrl+Z` 与 `execCommand('undo')` 均失效），而该栈无法从 JS 重建。新增 `historyStack` / `historyIndex` / `recordHistory()` / `applyHistory()` / `onSelectorKeydown()`，把用户编辑与程序化覆盖一并记入历史；连续敲击在防抖落定时合并为一个撤销单位。新增 `tests/panel-undo-verify.mjs`（20 项断言，两个项目通用，自动识别 XPath / CSS 变体） |
